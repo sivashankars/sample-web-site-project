@@ -1,0 +1,195 @@
+function saveCookie(username) {
+    var name = "mycookie";
+    var date = new Date();
+    date.setDate(date.getDate() + 7);
+    document.cookie = name + "=" + username + "; expires=" + date + "; path=/";
+    //alert("Cookie, " + name + " successfully created.");
+}
+
+function readCookie() {
+    var cookieName = "mycookie";
+    if (document.cookie.length > 0) {
+        cookieStart = document.cookie.indexOf(cookieName + "=");
+        if (cookieStart != -1) {
+            cookieStart = cookieStart + cookieName.length + 1;
+            cookieEnd = document.cookie.indexOf(";", cookieStart);
+            if (cookieEnd == -1) cookieEnd = document.cookie.length;
+            //alert( "Value of cookie, "+ cookieName + ", is: " + unescape(document.cookie.substring(cookieStart,cookieEnd)));
+            return true;
+        } else {
+            //alert("Cookie, " + cookieName + ": Not Found.");
+            return false;
+        }
+    } else {
+        //alert("Cookie, " + cookieName + ": Not Found.");
+        return false;
+    }
+}
+
+function clearCookie(name) {
+    var date = new Date();
+    date.setDate(date.getDate() - 1);
+    document.cookie = name + "=''; expires=" + date + "; path=/";
+    alert('Successfully erased Cookie ' + name);
+}
+//textarea js
+var TextMessage = 'Type Your Message Here..';
+
+function SetMsg(txt, active) {
+    if (txt == null) return;
+    if (active) {
+        if (txt.value == TextMessage) txt.value = '';
+    } else {
+        if (txt.value == '') txt.value = TextMessage;
+    }
+}
+window.onload = function() {
+    SetMsg(document.getElementById('TxtareaInput', false));
+}
+// validation
+function validate1() {
+    var txtFName = document.getElementById("nam");
+    var tb_phone = document.getElementById("mob");
+    var txtEmail = document.getElementById("mail");
+    var ddl_courses = document.getElementById("ddl_courses");
+    var TxtareaInput = document.getElementById("com");
+    var context = "<span>Please check:</span><ol> ";
+    var flag = 1;
+    var numbers = /^[0-9]+$/;
+    var pattern = new RegExp(/^[+a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/i);
+    if (!(txtFName.value != "Name*" && txtFName.value.length != 0)) {
+        context = context + "<li>Enter your name</li>";
+        flag = 0;
+    }
+    if (!(tb_phone.value != "Mobile No*" && tb_phone.value.length >= 10)) {
+        context = context + "<li>Enter your mobile number</li>";
+        flag = 0;
+    } else if (!tb_phone.value.match(numbers)) {
+        context = context + "<li>Enter your valid  mobile number</li>";
+        flag = 0;
+    }
+    if (!(txtEmail.value != "Email*" && txtEmail.value.length != 0)) {
+        context = context + "<li>Enter your email id </li>";
+        flag = 0;
+    } else if (!pattern.test(txtEmail.value)) {
+        context = context + "<li> Enter Valid email id</li>";
+        flag = 0;
+    }
+    if (!(TxtareaInput.value != "Type Your Message Here.." && TxtareaInput.value.length != 0)) {
+        context = context + "<li>Enter your message</li>";
+        flag = 0;
+    }
+    if (flag == 0) {
+        document.getElementById("stagefailure").innerHTML = context;
+        return false;
+    } else {
+        saveCookie(txtFName.value);
+        return true;
+    }
+}
+
+function isNumberKey(evt) {
+    var charCode = (evt.which) ? evt.which : event.keyCode;
+    if (charCode != 46 && charCode > 31 && (charCode < 48 || charCode > 57)) {
+        return false;
+    }
+    return true;
+}
+var timer = null;
+jQuery(document).ready(function() {
+    // alert($(document).width());
+    timer = setTimeout('div();', 6000);
+});
+
+function showcontact() {
+    jQuery(".qform-elements").fadeTo("slow", 1);
+    jQuery("#loading").css("display", "none");
+}
+
+function div() {
+    var w = window,
+        d = document,
+        e = d.documentElement,
+        g = d.getElementsByTagName('body')[0],
+        x = w.innerWidth || e.clientWidth || g.clientWidth,
+        y = w.innerHeight || e.clientHeight || g.clientHeight;
+    if (readCookie() || x <= 100) {
+        jQuery("#contact-us-overlay").css("display", "none");
+    } else {
+        var url = "";
+        jQuery("#contact-us-overlay").css("display", "block");
+        jQuery("#contact-us-wrapper").css("height", jQuery(document).height().toString() + "px");
+        jQuery("#contact-us-wrapper").css("width", jQuery(document).width().toString() + "px");
+        jQuery("#contact-loader").css("display", "block");
+        var timex = setTimeout('showcontact();', 400);
+    }
+}
+
+function divclose() {
+    var timex = setTimeout(" jQuery('#contact-us-overlay').css('display','none');", 1000);
+    jQuery(".qform-elements").fadeOut("slow");
+}
+//Form Submission
+jQuery(document).on('click', '#test_submit', function(e) {
+  // alert();
+    // var validres = validate1();
+    jQuery('#jnenquiry_id').submit(function(e) {
+        e.preventDefault();
+    });
+    // if (validres) {
+        // jQuery(this).html('Sending...');
+        //jQuery(this).attr('disabled', true);
+        var form_values = jQuery('#jnenquiry_id').serialize();
+        var formurl = jQuery('#jnenquiry_id').attr('data-url');
+        // alert(form_values);
+        jQuery.ajax({
+            url: '/ajax.php',
+            data: form_values,
+            type: 'POST',
+            dataType: "json",
+            success: function(result) {
+                if (result.status == "failed") {
+                    jQuery("#test_submit").html('Send');
+                    jQuery("#test_submit").prop('disabled',false);
+                    document.getElementById("stagefailure").innerHTML = result.errors;
+                } else {
+                    // jQuery(".qform-left").html('');
+                    // jQuery(".qform-left").attr("id", "qform-suc");
+                    jQuery(".qform-elements").html('<div style="background-color:green; color:#fff; text-align:center; padding:10px;" align="center">'+result.msg+'</div>');
+                    // divclose();
+                    var timex = setTimeout(" jQuery('#contact-us-overlay').css('display','none');", 3000);
+                    jQuery(".qform-elements").fadeOut("slow");
+                }
+            },
+            failure: function() {
+                jQuery("#test_submit").html('Send');
+                jQuery("#test_submit").prop('disabled', false);
+                document.getElementById("stagefailure").innerHTML = "Please Try Again Later";
+            }
+        });
+    // }
+});
+jQuery(document).on('focus', 'input', function(e) {
+    if (this.value == 'Email*') return this.value = '';
+    else if (this.value == 'Name*') return this.value = '';
+    else if (this.value == '10 Digit Mobile No*') return this.value = '';
+});
+/*	function textblur(org_val,ass_val)
+	{
+		if(org_val.length==0)
+			return this.value = ass_val;
+	}
+	*/
+jQuery(document).on('blur', 'input', function() {
+    if (this.value.length == 0) {
+        var key = jQuery(this).attr('id');
+        if (key == 'tb_phone') return this.value = "10 Digit Mobile No*";
+        if (key == 'txtEmail') return this.value = "Email*";
+        if (key == 'txtFName') return this.value = "Name*";
+    }
+});
+jQuery(document).on('keydown', function(e) {
+    if (e.keyCode === 27) { // ESC
+        divclose();
+    }
+});
